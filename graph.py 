@@ -1,16 +1,54 @@
 import sys
 import networkx as nx
 import json
-
-def parseJSON(path):
-    obj = None
-    with open(path, 'r') as jsonData:
-        obj = json.load(jsonData)
-    return obj
-def createGraph(path):
+import matplotlib.pyplot as plt
+'''
+Node = artist
+Edge = .5*artistPop + .5*(energy + instrumentalness + loudness + danceability diff)
+'''
+def createGraph(data_path):
+    # loads the JSON object
+    def parseJSON(path):
+        obj = None
+        with open(path, 'r') as jsonData:
+            obj = json.load(jsonData)
+        return obj
+    # creates graph
     G = nx.Graph()
+    data = parseJSON(data_path)
+    try:
+        artists = data['artists']
+    except data is None:
+        status = 'Error in parsing data from path'
+    for artist in artists:
+        G.add_node(artist['name'])
+        for neighbor in artist['related']:
+            if neighbor['name'] not in G.nodes:
+                G.add_node(neighbor['name'])
+                # this really should be a subtraction
+                edgeWeight = neighbor['popularity']
+                G.add_edge(artist['name'], neighbor['name'], weight = edgeWeight)
+    return G
+    # BFS to traverse adj list and construct graph
+    if len(artists) > 0:
+        qBFS = []
+        qBFS.append(artists[0])
+        visited.add(artists[0]['name'])
+        G.add_node(v['name'])
+        visited = set()
+        while qBFS:
+            v = qBFS.pop(0)
+            for w in v['related']:
+                if w not in visited:
+                    G.add_node(w['name'])
+
+
+
 
 if __name__ == '__main__':
   path = 'data.txt'
-  data = parseJSON(path)
-  print(data['artists'][0]['name'])
+  graph = createGraph(path)
+  print(graph.nodes)
+  # JSON Parsing TEST
+  # data = parseJSON(path)
+  # print(data['artists'][0]['id'])
