@@ -2,11 +2,12 @@ import sys
 import networkx as nx
 import json
 import matplotlib.pyplot as plt
+import math
 '''
 Node = artist
 Edge = .5*artistPop + .5*(energy + instrumentalness + loudness + danceability diff)
 '''
-def createGraph(data_path):
+def createGraph(data_path, track_data_path):
     # loads the JSON object
     def parseJSON(path):
         obj = None
