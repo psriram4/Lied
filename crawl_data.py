@@ -4,10 +4,10 @@ import spotipy.util as util
 import spotipy.oauth2 as oauth2
 import json
 
-spotipy_client_id = 'your-client-id'
-spotipy_client_secret = 'your-client-secret'
-spotipy_redirect_uri = 'your-redirect-uri'
-username = 'your-username'
+spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
+spotipy_client_secret = '1041bf1540764c3197bb0f172d77bd98'
+spotipy_redirect_uri = 'http://localhost/'
+username = 'pranav.sriram'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
@@ -60,6 +60,36 @@ def getPopularTracks(artist):
     
     return popular_tracks
 
+def getAverageRatings(artist):
+    artist_id = artist['id']
+    top_tracks = spotify.artist_top_tracks(artist_id, country='US')
+
+    danceability = 0
+    energy = 0
+    loudness = 0
+    speechiness = 0
+
+    for top_track in top_tracks['tracks']:
+        audio_features_json = spotify.audio_features(top_track['id'])
+        audio_features = audio_features_json[0]
+        danceability += audio_features['danceability']
+        energy += audio_features['energy']
+        loudness += audio_features['loudness']
+        speechiness += audio_features['speechiness']
+
+    danceability = danceability / 10
+    energy = energy / 10
+    loudness = loudness / 10
+    speechiness = speechiness / 10
+
+    average_ratings = {}
+    average_ratings['danceability'] = danceability
+    average_ratings['energy'] = energy
+    average_ratings['loudness'] = loudness
+    average_ratings['speechiness'] = speechiness
+
+    return average_ratings
+
 
 def crawl(queue):
 
@@ -91,8 +121,7 @@ def crawl(queue):
         artist['popularity'] = curr_artist['popularity']
         artist['related'] = related
 
-        song_data[artist['id']] = getPopularTracks(artist)
-        
+        song_data[artist['id']] = getAverageRatings(artist)
 
         crawl_data.append(artist)
         seen_artists.append(artist['id'])
