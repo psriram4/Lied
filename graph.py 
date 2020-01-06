@@ -1,0 +1,16 @@
+import sys
+import networkx as nx
+import json
+
+def parseJSON(path):
+    obj = None
+    with open(path, 'r') as jsonData:
+        obj = json.load(jsonData)
+    return obj
+def createGraph(path):
+    G = nx.Graph()
+
+if __name__ == '__main__':
+  path = 'data.txt'
+  data = parseJSON(path)
+  print(data['artists'][0]['name'])
