@@ -16,6 +16,7 @@ def createGraph(data_path):
     # creates graph
     G = nx.Graph()
     data = parseJSON(data_path)
+    track_data = parseJSON(track_data_path)
     try:
         artists = data['artists']
     except data is None:
@@ -53,7 +54,8 @@ def createGraph(data_path):
 
 if __name__ == '__main__':
   path = 'data.txt'
-  graph = createGraph(path)
+  song_path = 'tracks.txt'
+  graph = createGraph(path, song_path)
   print(graph.nodes)
   # JSON Parsing TEST
   # data = parseJSON(path)
