@@ -4,7 +4,6 @@ import spotipy.util as util
 import spotipy.oauth2 as oauth2
 import json
 
-
 spotipy_client_id = 'your-client-id'
 spotipy_client_secret = 'your-client-secret'
 spotipy_redirect_uri = 'your-redirect-uri'
@@ -37,11 +36,38 @@ def getMostPopular(arr):
     return i
 
 
+def getPopularTracks(artist):
+    artist_id = artist['id']
+    top_tracks = spotify.artist_top_tracks(artist_id, country='US')
+
+    popular_tracks = []
+
+    for top_track in top_tracks['tracks']:
+        track = {}
+        track_features = {}
+        track['name'] = top_track['name']
+        track['id'] = top_track['id']
+
+        audio_features_json = spotify.audio_features(track['id'])
+        audio_features = audio_features_json[0]
+        track_features['danceability'] = audio_features['danceability']
+        track_features['energy'] = audio_features['energy']
+        track_features['loudness'] = audio_features['loudness']
+        track_features['speechiness'] = audio_features['speechiness']
+
+        track['features'] = track_features
+        popular_tracks.append(track)
+    
+    return popular_tracks
+
+
 def crawl(queue):
 
     data = {}
     seen_artists = []
     crawl_data = []
+
+    song_data = {}
 
     while len(queue) != 0:
         idx = getMostPopular(queue)
@@ -56,23 +82,32 @@ def crawl(queue):
             artist_json['id'] = artist['id']
             related.append(artist_json)
 
-            if artist['name'] not in seen_artists:
+            if artist['id'] not in seen_artists:
                 queue.append(artist_json)
 
         artist = {}
         artist['name'] = curr_artist['name']
+        artist['id'] = curr_artist['id']
+        artist['popularity'] = curr_artist['popularity']
         artist['related'] = related
+
+        song_data[artist['id']] = getPopularTracks(artist)
+        
+
         crawl_data.append(artist)
-        seen_artists.append(curr_artist['name'])
+        seen_artists.append(artist['id'])
 
 
         # constraint, modify the constant below to determine how many artists we store related artists for
-        if len(seen_artists) > 200:
+        if len(seen_artists) > 20:
             break
 
     data['artists'] = crawl_data
     with open('data.txt', 'w') as outfile:
         json.dump(data, outfile)
+
+    with open('tracks.txt', 'w') as outfile:
+        json.dump(song_data, outfile)
 
     print("length of crawl data: ", len(crawl_data))
     return crawl_data
