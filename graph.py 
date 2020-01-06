@@ -3,6 +3,29 @@ import networkx as nx
 import json
 import matplotlib.pyplot as plt
 import math
+import spotipy
+import spotipy.util as util
+import spotipy.oauth2 as oauth2
+'''
+I'm using this code for authorization because I need to access the spotify webAPI
+'''
+spotipy_client_id = 'essentially'
+spotipy_client_secret = 'yote'
+spotipy_redirect_uri = 'yeet'
+username = 'idk'
+scope = None
+
+# token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
+credentials = oauth2.SpotifyClientCredentials(client_id=spotipy_client_id, client_secret=spotipy_client_secret)
+token = credentials.get_access_token()
+
+if token:
+    spotify = spotipy.Spotify(auth=token)
+else:
+    print("can't get token for ", username)
+# GLOBAL VARS
+# creates graph
+G = nx.Graph()
 '''
 Node = artist
 Edge = .5*artistPop + .5*(energy + instrumentalness + loudness + danceability diff)
@@ -14,8 +37,6 @@ def createGraph(data_path, track_data_path):
         with open(path, 'r') as jsonData:
             obj = json.load(jsonData)
         return obj
-    # creates graph
-    G = nx.Graph()
     data = parseJSON(data_path)
     track_data = parseJSON(track_data_path)
     try:
@@ -45,10 +66,57 @@ def createGraph(data_path, track_data_path):
                     euclidean_distance += ((1/60)*(artist_tracks['loudness'] - neighbor_tracks['loudness']))**2
                     euclidean_distance += (artist_tracks['speechiness'] - neighbor_tracks['speechiness'])**2
 
-                    edgeWeight = math.sqrt(euclidean_distance)*100 + 100 - abs(neighbor['popularity'] - artist['popularity'])
+                    edgeWeight = math.sqrt(euclidean_distance)*100 + abs(neighbor['popularity'] - artist['popularity'])
                 G.add_edge(artist['id'], neighbor['id'], weight = edgeWeight)
-    return G
 
+def findPath(tA, tB, skip = []):
+    # The search feature is getting really annoying so I'm just going to work with artists for now
+    songPath = []
+    trackA = spotify.audio_features(tA)[0]
+    artA = spotify.track(tA)['artists'][0]['id']
+    artB = spotify.track(tB)['artists'][0]['id']
+    path = None
+    status = 'ok'
+    try:
+        length, path = nx.bidirectional_dijkstra(G, artA, artB)
+    except nx.NetworkXNoPath:
+        status = 'No path between ' + tA + ' and ' + tB
+    prevdance = 0
+    prevenergy = 0
+    prevloud = 0
+    prevspeech = 0
+    for idx in range(len(path)):
+        if idx == 0:
+            songPath.append(tA)
+            prevdance = trackA['danceability']
+            prevenergy = trackA['energy']
+            prevloud = trackA['loudness']
+            prevspeech = trackA['speechiness']
+        elif idx == len(path) - 1:
+            songPath.append(tB)
+        else:
+            # ideally we look at the location of who requests are service for country param
+            artistTracks = spotify.artist_top_tracks(path[idx], country = 'US')['tracks']
+            # keep track of the min step value and the index in the artistTracks that contains it
+            minGrad = 1
+            minidx = 0
+            for idx in range(len(artistTracks)):
+                curr = spotify.audio_features(artistTracks[idx]['id'])[0]
+                euclidean_distance = 0
+                euclidean_distance += ((curr['danceability']) - prevdance)**2
+                euclidean_distance += ((curr['energy']) - prevenergy)**2
+                euclidean_distance += ((1/60)*((curr['loudness']) - prevloud))**2
+                euclidean_distance += ((curr['speechiness']) - prevspeech)**2
+                curGrad = math.sqrt(euclidean_distance)
+                if curGrad < minGrad:
+                    minGrad = curGrad
+                    minidx = idx
+                    prevdance = curr['danceability']
+                    prevenergy = curr['energy']
+                    prevloud = curr['loudness']
+                    prevspeech = curr['speechiness']
+            songPath.append(artistTracks[minidx]['id'])
+    return [spotify.artist(id)['name'] for id in path], [spotify.track(id)['name'] for id in songPath]
 
 
 
@@ -56,8 +124,9 @@ def createGraph(data_path, track_data_path):
 if __name__ == '__main__':
   path = 'data.txt'
   song_path = 'tracks.txt'
-  graph = createGraph(path, song_path)
-  print(graph.nodes)
+  createGraph(path, song_path)
+  # print(G.nodes)
+  print('findpath', findPath('1zVBU0PAj7ZUVmVfG2pgQG', '7we4F7WaGl3wb5Kw96Oeic'))
   # JSON Parsing TEST
   # data = parseJSON(path)
   # print(data['artists'][0]['id'])
