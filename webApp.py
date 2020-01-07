@@ -13,8 +13,8 @@ def index():
         tracks_col_name = "tracks_col"
         graph.createGraph(data_col_name, tracks_col_name)
         status,track_list = graph.findShortestPath(startSong, endSong)
-        yotepath = graph.cleanPathOutput(track_list)
-        return ''.join(yotepath)
+        playList = graph.cleanPathOutput(track_list)
+        return ''.join(playList)
     return render_template('index.html', error = error)
 if __name__ == '__main__':
     app.run(debug=True)
