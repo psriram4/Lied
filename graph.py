@@ -6,15 +6,18 @@ import math
 import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
+import pymongo
 
 '''
 Create an artist similarity graph and run bidirectional dijkstra's
 '''
 
-spotipy_client_id = 'ya ya yeet'
-spotipy_client_secret = 'yayaya'
-spotipy_redirect_uri = 'redirect john'
-username = 'cheeloy'
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+
+spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
+spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
+spotipy_redirect_uri = 'http://localhost/'
+username = 'pranav.sriram'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
@@ -29,16 +32,27 @@ else:
 
 G = nx.Graph()
 
-def createGraph(data_path, track_data_path):
+def createGraph(data_col_name, track_data_col_name):
     # loads the JSON object
     def parseJSON(path):
         obj = None
         with open(path, 'r') as jsonData:
             obj = json.load(jsonData)
         return obj
+    
+    def loadFromDatabase(collection_name, item_id):
+        bridge_db = client["bridge_db"]
+        collection = bridge_db[collection_name]
+        document = collection.find_one({ "_id": item_id})
+        return document
 
-    data = parseJSON(data_path)
-    track_data = parseJSON(track_data_path)
+
+    data = loadFromDatabase(data_col_name, 1)
+    track_data = loadFromDatabase(track_data_col_name, 1)
+
+    # data = parseJSON(data_path)
+    # track_data = parseJSON(track_data_path)
+
     try:
         artists = data['artists']
     except data is None:
@@ -123,9 +137,12 @@ def findShortestPath(start_song, end_song):
 
 
 if __name__ == '__main__':
-    path = 'data.txt'
-    song_path = 'tracks.txt'
-    createGraph(path, song_path)
+    # path = 'data.txt'
+    # song_path = 'tracks.txt'
+
+    data_col_name = "artist_col"
+    tracks_col_name = "tracks_col"
+    createGraph(data_col_name, tracks_col_name)
     start_song = '52VJwrmQflskeWoV0OmEEh'
     end_song = '40bynawzslg9U7ACq07fAj'
     track_list = findShortestPath(start_song, end_song)
