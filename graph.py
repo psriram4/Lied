@@ -33,13 +33,7 @@ else:
 G = nx.Graph()
 
 def createGraph(data_col_name, track_data_col_name):
-    # loads the JSON object
-    def parseJSON(path):
-        obj = None
-        with open(path, 'r') as jsonData:
-            obj = json.load(jsonData)
-        return obj
-    
+
     def loadFromDatabase(collection_name, item_id):
         bridge_db = client["bridge_db"]
         collection = bridge_db[collection_name]
@@ -85,7 +79,7 @@ def createGraph(data_col_name, track_data_col_name):
 
 
 def minimizeTracks(artist_path, first_song, last_song):
-    
+
     tracks = []
     for i in range(len(artist_path)):
         if i == 0:
@@ -129,11 +123,15 @@ def findShortestPath(start_song, end_song):
     status = 'ok'
     try:
         length, path = nx.bidirectional_dijkstra(G, start_artist, end_artist)
-    except:
+    except nx.NetworkXNoPath:
         status = 'No path between ' + start_song + ' and ' + end_song
-    return minimizeTracks(path, start_song, end_song)
+    return status,minimizeTracks(path, start_song, end_song)
 
-
+def cleanPathOutput(trackList):
+    output = []
+    for track in trackList:
+        output.append(spotify.track(track)['name'])
+    return output
 
 
 if __name__ == '__main__':
@@ -145,9 +143,7 @@ if __name__ == '__main__':
     createGraph(data_col_name, tracks_col_name)
     start_song = '52VJwrmQflskeWoV0OmEEh'
     end_song = '40bynawzslg9U7ACq07fAj'
-    track_list = findShortestPath(start_song, end_song)
-    
+    status,track_list = findShortestPath(start_song, end_song)
+
     for track in track_list:
         print(spotify.track(track)['name'])
-
-
