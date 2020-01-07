@@ -14,10 +14,10 @@ Create an artist similarity graph and run bidirectional dijkstra's
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-spotipy_client_id = 'd7afc31707824ecabe5583dc87bbfb31'
-spotipy_client_secret = 'b19fd0ce632243b4a74ae23516e48db9'
-spotipy_redirect_uri = 'http://localhost/'
-username = 'amithcskills'
+spotipy_client_id = 'borty'
+spotipy_client_secret = 'cheeloynakra'
+spotipy_redirect_uri = 'yeet'
+username = 'yeet'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
