@@ -3,9 +3,12 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 import json
+import pymongo
+
+client = pymongo.MongoClient("mongodb://localhost:27017/")
 
 spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
-spotipy_client_secret = '1041bf1540764c3197bb0f172d77bd98'
+spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
 spotipy_redirect_uri = 'http://localhost/'
 username = 'pranav.sriram'
 scope = None
@@ -132,11 +135,29 @@ def crawl(queue):
             break
 
     data['artists'] = crawl_data
+    
+    # this saves the data to text files, can be removed once database is created
     with open('data.txt', 'w') as outfile:
         json.dump(data, outfile)
 
     with open('tracks.txt', 'w') as outfile:
         json.dump(song_data, outfile)
+
+
+    # database
+    data['_id'] = 1
+    song_data['_id'] = 1
+
+    bridge_db = client["bridge_db"]
+    artist_col = bridge_db["artist_col"]
+    tracks_col = bridge_db["tracks_col"]
+
+    inserted_data = artist_col.insert_one(data)
+    inserted_song_data = tracks_col.insert_one(song_data) 
+
+    print(inserted_data.inserted_id, " - data has been inserted")
+    print(inserted_song_data.inserted_id, " - song data has been inserted")
+
 
     print("length of crawl data: ", len(crawl_data))
     return crawl_data
