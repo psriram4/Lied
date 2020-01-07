@@ -14,10 +14,10 @@ Create an artist similarity graph and run bidirectional dijkstra's
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
-spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
+spotipy_client_id = 'd7afc31707824ecabe5583dc87bbfb31'
+spotipy_client_secret = 'b19fd0ce632243b4a74ae23516e48db9'
 spotipy_redirect_uri = 'http://localhost/'
-username = 'pranav.sriram'
+username = 'amithcskills'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
@@ -33,13 +33,7 @@ else:
 G = nx.Graph()
 
 def createGraph(data_col_name, track_data_col_name):
-    # loads the JSON object
-    def parseJSON(path):
-        obj = None
-        with open(path, 'r') as jsonData:
-            obj = json.load(jsonData)
-        return obj
-    
+
     def loadFromDatabase(collection_name, item_id):
         bridge_db = client["bridge_db"]
         collection = bridge_db[collection_name]
@@ -85,7 +79,7 @@ def createGraph(data_col_name, track_data_col_name):
 
 
 def minimizeTracks(artist_path, first_song, last_song):
-    
+
     tracks = []
     for i in range(len(artist_path)):
         if i == 0:
@@ -129,11 +123,15 @@ def findShortestPath(start_song, end_song):
     status = 'ok'
     try:
         length, path = nx.bidirectional_dijkstra(G, start_artist, end_artist)
-    except:
+    except nx.NetworkXNoPath:
         status = 'No path between ' + start_song + ' and ' + end_song
-    return minimizeTracks(path, start_song, end_song)
+    return status,minimizeTracks(path, start_song, end_song)
 
-
+def cleanPathOutput(trackList):
+    output = []
+    for track in trackList:
+        output.append(spotify.track(track)['name'])
+    return output
 
 
 if __name__ == '__main__':
@@ -145,9 +143,7 @@ if __name__ == '__main__':
     createGraph(data_col_name, tracks_col_name)
     start_song = '52VJwrmQflskeWoV0OmEEh'
     end_song = '40bynawzslg9U7ACq07fAj'
-    track_list = findShortestPath(start_song, end_song)
-    
+    status,track_list = findShortestPath(start_song, end_song)
+
     for track in track_list:
         print(spotify.track(track)['name'])
-
-
