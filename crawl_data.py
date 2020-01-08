@@ -7,10 +7,10 @@ import pymongo
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-spotipy_client_id = 'yayayeet'
-spotipy_client_secret = 'i like ganondorf'
-spotipy_redirect_uri = 'the john'
-username = 'cheeloy'
+spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
+spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
+spotipy_redirect_uri = 'http://localhost/'
+username = 'pranav.sriram'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
@@ -174,8 +174,15 @@ artist['id'] = init_artist['id']
 
 queue.append(artist)
 
-print("queue prepared. crawl starting...")
-crawl(queue)
+
+if "bridge_db" in client.list_database_names():
+    print("database already exists!")
+
+else: 
+    print("queue prepared. crawl starting...")
+    crawl(queue)
+
+
 print("crawl done.")
 
 
