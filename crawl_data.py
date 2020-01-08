@@ -3,11 +3,14 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2 as oauth2
 import json
+import pymongo
 
-spotipy_client_id = 'your-client-id'
-spotipy_client_secret = 'your-client-secret'
-spotipy_redirect_uri = 'your-redirect-uri'
-username = 'your-username'
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+
+spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
+spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
+spotipy_redirect_uri = 'http://localhost/'
+username = 'pranav.sriram'
 scope = None
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
@@ -60,6 +63,36 @@ def getPopularTracks(artist):
     
     return popular_tracks
 
+def getAverageRatings(artist):
+    artist_id = artist['id']
+    top_tracks = spotify.artist_top_tracks(artist_id, country='US')
+
+    danceability = 0
+    energy = 0
+    loudness = 0
+    speechiness = 0
+
+    for top_track in top_tracks['tracks']:
+        audio_features_json = spotify.audio_features(top_track['id'])
+        audio_features = audio_features_json[0]
+        danceability += audio_features['danceability']
+        energy += audio_features['energy']
+        loudness += audio_features['loudness']
+        speechiness += audio_features['speechiness']
+
+    danceability = danceability / 10
+    energy = energy / 10
+    loudness = loudness / 10
+    speechiness = speechiness / 10
+
+    average_ratings = {}
+    average_ratings['danceability'] = danceability
+    average_ratings['energy'] = energy
+    average_ratings['loudness'] = loudness
+    average_ratings['speechiness'] = speechiness
+
+    return average_ratings
+
 
 def crawl(queue):
 
@@ -91,8 +124,7 @@ def crawl(queue):
         artist['popularity'] = curr_artist['popularity']
         artist['related'] = related
 
-        song_data[artist['id']] = getPopularTracks(artist)
-        
+        song_data[artist['id']] = getAverageRatings(artist)
 
         crawl_data.append(artist)
         seen_artists.append(artist['id'])
@@ -103,11 +135,29 @@ def crawl(queue):
             break
 
     data['artists'] = crawl_data
+    
+    # this saves the data to text files, can be removed once database is created
     with open('data.txt', 'w') as outfile:
         json.dump(data, outfile)
 
     with open('tracks.txt', 'w') as outfile:
         json.dump(song_data, outfile)
+
+
+    # database
+    data['_id'] = 1
+    song_data['_id'] = 1
+
+    bridge_db = client["bridge_db"]
+    artist_col = bridge_db["artist_col"]
+    tracks_col = bridge_db["tracks_col"]
+
+    inserted_data = artist_col.insert_one(data)
+    inserted_song_data = tracks_col.insert_one(song_data) 
+
+    print(inserted_data.inserted_id, " - data has been inserted")
+    print(inserted_song_data.inserted_id, " - song data has been inserted")
+
 
     print("length of crawl data: ", len(crawl_data))
     return crawl_data
@@ -124,8 +174,15 @@ artist['id'] = init_artist['id']
 
 queue.append(artist)
 
-print("queue prepared. crawl starting...")
-crawl(queue)
+
+if "bridge_db" in client.list_database_names():
+    print("database already exists!")
+
+else: 
+    print("queue prepared. crawl starting...")
+    crawl(queue)
+
+
 print("crawl done.")
 
 
