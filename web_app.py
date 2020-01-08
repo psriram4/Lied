@@ -12,11 +12,12 @@ app = Flask(__name__)
 
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
 
-spotipy_client_id = 'a8a57761a69c4cadbc21223798fdf799'
-spotipy_client_secret = '2882513df3d24e46a89e034dd16ddf4f'
-spotipy_redirect_uri = 'http://localhost/'
-username = 'pranav.sriram'
+spotipy_client_id = 'king-nith'
+spotipy_client_secret = 'palutena-is-trash'
+spotipy_redirect_uri = 'pikachu is aids'
+username = 'wolf for the win'
 scope = None
+
 
 # token = util.prompt_for_user_token(username, scope, client_id=spotipy_client_id, client_secret=spotipy_client_secret, redirect_uri=spotipy_redirect_uri)
 credentials = oauth2.SpotifyClientCredentials(client_id=spotipy_client_id, client_secret=spotipy_client_secret)
@@ -39,3 +40,7 @@ def index():
     return render_template('index.html', error = error)
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
