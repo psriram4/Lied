@@ -12,7 +12,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import APIClient from '../apiClient'
+import APIClient from '../apiClient';
 
 function Copyright() {
   return (
@@ -47,14 +47,9 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function UserInput() {
+function SignIn(props) {
   const classes = useStyles();
-  function handleClick(e){
-    e.preventDefault()
-    var oof = new APIClient();
-    console.log(oof.createKudo(e) + '')
-    return oof.createKudo(e)
-  }
+
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -65,7 +60,7 @@ export default function UserInput() {
         <Typography component="h1" variant="h5">
           theBridge
         </Typography>
-        <form className={classes.form} onSubmit = {handleClick} noValidate>
+        <form className={classes.form} onSubmit = {props.onSubmit} noValidate>
           <TextField
             variant="outlined"
             margin="normal"
@@ -75,6 +70,7 @@ export default function UserInput() {
             label="Start Song"
             name="startSong"
             autoFocus
+            onChange = {props.startSong}
           />
           <TextField
             variant="outlined"
@@ -84,6 +80,7 @@ export default function UserInput() {
             name="endSong"
             label="End Song"
             id="endSong"
+            onChange = {props.endSong}
           />
           <Button
             type="submit"
@@ -97,7 +94,7 @@ export default function UserInput() {
           <Grid container>
             <Grid item xs>
               <Link href="#" variant="body2">
-                Confused on spotify uri's?
+                Confused on spotify URIs?
               </Link>
             </Grid>
             <Grid item>
@@ -108,16 +105,54 @@ export default function UserInput() {
           </Grid>
         </form>
       </div>
+      <Box mt={8}>
+        <Copyright />
+      </Box>
     </Container>
   );
 }
-// export default class Home extends Component {
-//   state = {
-//   }
-//
-//   render () {
-//       return (
-//         SignIn()
-//       )
-//    }
-// }
+
+export default class Home extends Component{
+  constructor(props){
+    super(props)
+    this.state = {
+      startSong: '',
+      endSong: '',
+      trackList: [],
+      isSubmitted: false
+    };
+    this.yoter= <p> yeet </p>
+    this.handleSubmit = async event => {
+      event.preventDefault()
+      // var data = JSON.stringify(this.state)
+      var data = this.state
+      var apiClient = new APIClient();
+      var res = await apiClient.createKudo(data)
+      this.state.trackList = res
+
+      this.setState({isSubmitted:true})
+      console.log(res)
+    }
+    this.handleStart = async event => {
+      this.state.startSong = event.target.value
+      console.log(event.target.value)
+    }
+    this.handleEnd = async event => {
+      this.state.endSong = event.target.value
+    }
+  }
+  render(){
+    return (
+      <div className = "Home">
+        <SignIn onSubmit = {this.handleSubmit} startSong = {this.handleStart}
+        endSong = {this.handleEnd}/>
+        {this.state.isSubmitted && <p> {this.state.trackList.toString()} </p>}
+      </div>
+    );
+  }
+}
+// 53A0W3U0s8diEn9RhXQhVz, spotify:track:5hkdfA87RZvNaxl6XiveOA; 1UdQqCUR7RwB9YYJONwbdM, spotify:track:0K8Hm9Q7GbyucgQB5BhC5C
+//   // <FormControlLabel
+  //   control={<Checkbox value="remember" color="primary" />}
+  //   label="Remember me"
+  // />

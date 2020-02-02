@@ -35,9 +35,11 @@ G = None
 def index():
     error = None
     if request.method == 'POST':
-        return 'y'
-        start_song = request.form['startSong']
-        end_song = request.form['endSong']
+        data = json.loads(request.data)
+        # start_song = request.form['startSong']
+        # end_song = request.form['endSong']
+        start_song = data['startSong']
+        end_song = data['endSong']
         track_list = graph.getTrackList(start_song, end_song)
         return ', '.join(track_list)
     return 'f'
